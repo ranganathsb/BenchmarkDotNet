@@ -50,27 +50,45 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
         private bool IsLocalCoreClr => IsUsingCustomCoreClr && Directory.Exists(CoreClrNuGetFeed);
         private bool IsLocalCoreFx => IsUsingCustomCoreFx && Directory.Exists(CoreFxNuGetFeed);
 
+        // we need an isolated folder only local build packages
+        private bool NeedsIsolatedFolderForRestore => IsLocalCoreClr || IsLocalCoreFx;
+         
         protected override string GetBuildArtifactsDirectoryPath(BuildPartition buildPartition, string programName)
-            => Path.Combine(Path.GetTempPath(), programName); // store everything in temp to avoid collisions with IDE
+            => NeedsIsolatedFolderForRestore
+                ? Path.Combine(Path.GetTempPath(), programName) // store everything in temp to avoid collisions with IDE
+                : base.GetBuildArtifactsDirectoryPath(buildPartition, programName);
 
         protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration)
             => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, RuntimeIdentifier, "publish");
 
         protected override void GenerateBuildScript(BuildPartition buildPartition, ArtifactsPaths artifactsPaths)
-            => File.WriteAllText(artifactsPaths.BuildScriptFilePath, 
-                $"dotnet restore --packages {artifactsPaths.PackagesDirectoryName} --no-dependencies" + Environment.NewLine +
-                $"dotnet build -c {buildPartition.BuildConfiguration} --no-restore --no-dependencies" + Environment.NewLine +
-                $"dotnet publish -c {buildPartition.BuildConfiguration} --no-restore --no-dependencies");
+        {
+            if (NeedsIsolatedFolderForRestore)
+            {
+                File.WriteAllText(artifactsPaths.BuildScriptFilePath,
+                    $"dotnet restore --packages {artifactsPaths.PackagesDirectoryName} --no-dependencies" + Environment.NewLine +
+                    $"dotnet build -c {buildPartition.BuildConfiguration} --no-restore --no-dependencies" + Environment.NewLine +
+                    $"dotnet publish -c {buildPartition.BuildConfiguration} --no-restore --no-dependencies");
+            }
+            else
+            {
+                File.WriteAllText(artifactsPaths.BuildScriptFilePath, $"dotnet publish -c {buildPartition.BuildConfiguration}");
+            }
+        }
 
         // we always want to have a new directory for NuGet packages restore 
         // to avoid this https://github.com/dotnet/coreclr/blob/master/Documentation/workflow/UsingDotNetCli.md#update-coreclr-using-runtime-nuget-package
         // some of the packages are going to contain source code, so they can not be in the subfolder of current solution
         // otherwise they would be compiled too (new .csproj include all .cs files from subfolders by default
         protected override string GetPackagesDirectoryPath(string buildArtifactsDirectoryPath)
-            => Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            => NeedsIsolatedFolderForRestore
+                ? Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString())
+                : null;
 
         protected override string[] GetArtifactsToCleanup(ArtifactsPaths artifactsPaths)
-            => base.GetArtifactsToCleanup(artifactsPaths).Concat(new[] { artifactsPaths.PackagesDirectoryName }).ToArray();
+            => NeedsIsolatedFolderForRestore
+                ? base.GetArtifactsToCleanup(artifactsPaths).Concat(new[] { artifactsPaths.PackagesDirectoryName }).ToArray()
+                : base.GetArtifactsToCleanup(artifactsPaths);
 
         protected override void GenerateNuGetConfig(ArtifactsPaths artifactsPaths)
         {

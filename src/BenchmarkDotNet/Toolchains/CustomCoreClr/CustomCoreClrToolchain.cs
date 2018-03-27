@@ -102,10 +102,8 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
             string nugetFeedUrl = "https://dotnet.myget.org/F/dotnet-core/api/v3/index.json",
             string targetFrameworkMoniker = "netcoreapp2.1", string displayName = "nightlyCoreFX", string runtimeIdentifier = null, string customDotNetCliPath = null)
         {
-            if (string.IsNullOrEmpty(privateCoreFxNetCoreAppVersion))
-                throw new ArgumentNullException(nameof(privateCoreFxNetCoreAppVersion));
-            if (string.IsNullOrEmpty(nugetFeedUrl))
-                throw new ArgumentNullException(nameof(nugetFeedUrl));
+            if (string.IsNullOrEmpty(privateCoreFxNetCoreAppVersion)) throw new ArgumentNullException(nameof(privateCoreFxNetCoreAppVersion));
+            if (string.IsNullOrEmpty(nugetFeedUrl)) throw new ArgumentNullException(nameof(nugetFeedUrl));
 
             runtimeIdentifier = runtimeIdentifier ?? CustomCoreClr.Generator.GetPortableRuntimeIdentifier();
 

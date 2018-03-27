@@ -22,6 +22,32 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
         {
             var extraArguments = DotNetCliGenerator.GetCustomArguments(buildPartition.RepresentativeBenchmark, buildPartition.Resolver);
 
+            bool needsIsolatedFolderForRestore = !string.IsNullOrEmpty(generateResult.ArtifactsPaths.PackagesDirectoryName);
+
+            if (needsIsolatedFolderForRestore)
+            {
+                return PublishUsingIsolatedRestoreFolder(generateResult, buildPartition, logger, extraArguments);
+            }
+
+            var publishResult = DotNetCliCommandExecutor.ExecuteCommand(
+                CustomDotNetCliPath,
+                $"publish -c {buildPartition.BuildConfiguration} {extraArguments}",
+                generateResult.ArtifactsPaths.BuildArtifactsDirectoryPath);
+
+            logger.WriteLineInfo($"// dotnet publish took {publishResult.ExecutionTime.TotalSeconds:0.##}s");
+
+            if (!publishResult.IsSuccess &&
+                !File.Exists(generateResult.ArtifactsPaths.ExecutablePath)) // dotnet cli could have succesfully builded the program, but returned 1 as exit code because it had some warnings
+            {
+                return BuildResult.Failure(generateResult, new Exception(publishResult.ProblemDescription));
+            }
+
+            return BuildResult.Success(generateResult);
+            
+        }
+
+        private BuildResult PublishUsingIsolatedRestoreFolder(GenerateResult generateResult, BuildPartition buildPartition, ILogger logger, string extraArguments)
+        {
             // restore --packages restores all packages to a dedicated folder, our Generator always creates a new folder for this in temp (see Generator.GetPackagesDirectoryPath())
             // it's mandatory for us for two reasons:
             // 1. dotnet restore installs given package with given version number only once (every next restore reuses that package)
