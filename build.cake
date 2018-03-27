@@ -62,9 +62,9 @@ Task("FastTests")
     .Does(() =>
     {
         string[] targetVersions = IsRunningOnWindows() ? 
-                new []{"net46", "netcoreapp2.0"}
+                new []{"net46", "netcoreapp2.1"}
                 :
-                new []{"netcoreapp2.0"};
+                new []{"netcoreapp2.1"};
 
         foreach(var version in targetVersions)
         {
@@ -85,7 +85,7 @@ Task("SlowTestsNetCore2")
     .WithCriteria(!skipTests)
     .Does(() =>
     {
-        DotNetCoreTool(integrationTestsProjectPath, "xunit", GetTestSettingsParameters("netcoreapp2.0"));
+        DotNetCoreTool(integrationTestsProjectPath, "xunit", GetTestSettingsParameters("netcoreapp2.1"));
     });       
 
 Task("Pack")
@@ -121,9 +121,9 @@ RunTarget(target);
 private string GetTestSettingsParameters(string tfm)
 {
     var settings = $"-configuration {configuration} -stoponfail -maxthreads unlimited -nobuild  -framework {tfm}";
-    if(string.Equals("netcoreapp2.0", tfm, StringComparison.OrdinalIgnoreCase))
+    if(string.Equals("netcoreapp2.1", tfm, StringComparison.OrdinalIgnoreCase))
     {
-        settings += " --fx-version 2.0.6";
+        settings += " --fx-version 2.1.0-preview1-26216-03";
     }
     
     return settings;
