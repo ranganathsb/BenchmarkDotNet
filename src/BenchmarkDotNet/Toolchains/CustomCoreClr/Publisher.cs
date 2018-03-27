@@ -1,5 +1,3 @@
-using BenchmarkDotNet.Characteristics;
-using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
 using BenchmarkDotNet.Toolchains.DotNetCli;
@@ -11,16 +9,14 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
 {
     public class Publisher : IBuilder
     {
-        public Publisher(string targetFrameworkMoniker, string customDotNetCliPath = null, string[] filesToCopy = null) 
+        public Publisher(string targetFrameworkMoniker, string customDotNetCliPath = null) 
         {
             TargetFrameworkMoniker = targetFrameworkMoniker;
             CustomDotNetCliPath = customDotNetCliPath;
-            FilesToCopy = filesToCopy;
         }
 
         private string TargetFrameworkMoniker { get; }
         private string CustomDotNetCliPath { get; }
-        private string[] FilesToCopy { get; }
 
         public BuildResult Build(GenerateResult generateResult, BuildPartition buildPartition, ILogger logger)
         {
@@ -71,15 +67,6 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
                 !File.Exists(generateResult.ArtifactsPaths.ExecutablePath)) // dotnet cli could have succesfully builded the program, but returned 1 as exit code because it had some warnings
             {
                 return BuildResult.Failure(generateResult, new Exception(publishResult.ProblemDescription));
-            }
-
-            if (FilesToCopy != null)
-            {
-                var destinationFolder = Path.GetDirectoryName(generateResult.ArtifactsPaths.ExecutablePath);
-                foreach (var fileToCopy in FilesToCopy)
-                {
-                    File.Copy(fileToCopy, Path.Combine(destinationFolder, Path.GetFileName(fileToCopy)), overwrite: true);
-                }
             }
 
             return BuildResult.Success(generateResult);
