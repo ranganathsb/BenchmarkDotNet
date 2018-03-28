@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using BenchmarkDotNet.Extensions;
 
 namespace BenchmarkDotNet.Toolchains.CustomCoreClr
 {
@@ -25,7 +26,7 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
             string coreFxNuGetFeed, string coreFxVersion,
             string targetFrameworkMoniker = "netcoreapp2.1",
             string runtimeIdentifier = null)
-            : base(targetFrameworkMoniker, platform => platform.ToString())
+            : base(targetFrameworkMoniker, platform => platform.ToConfig())
         {
             if (!((!string.IsNullOrEmpty(coreClrNuGetFeed) && !string.IsNullOrEmpty(coreClrVersion)) 
                 || (!string.IsNullOrEmpty(coreFxNuGetFeed) && !string.IsNullOrEmpty(coreFxVersion))))
