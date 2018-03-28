@@ -27,7 +27,7 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
             string customDotNetCliPath = null)
             : base(displayName, 
                   new Generator(coreClrNuGetFeed, coreClrVersion, coreFxNuGetFeed, coreFxVersion, targetFrameworkMoniker, runtimeIdentifier),
-                  new Publisher(targetFrameworkMoniker, customDotNetCliPath),
+                  new Publisher(customDotNetCliPath),
                   new DotNetCliExecutor(customDotNetCliPath))
         {
         }

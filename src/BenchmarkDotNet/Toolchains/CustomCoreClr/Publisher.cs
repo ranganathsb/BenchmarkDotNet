@@ -9,42 +9,28 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
 {
     public class Publisher : IBuilder
     {
-        public Publisher(string targetFrameworkMoniker, string customDotNetCliPath = null) 
-        {
-            TargetFrameworkMoniker = targetFrameworkMoniker;
-            CustomDotNetCliPath = customDotNetCliPath;
-        }
+        public Publisher(string customDotNetCliPath = null) => CustomDotNetCliPath = customDotNetCliPath;
 
-        private string TargetFrameworkMoniker { get; }
         private string CustomDotNetCliPath { get; }
 
         public BuildResult Build(GenerateResult generateResult, BuildPartition buildPartition, ILogger logger)
         {
             var extraArguments = DotNetCliGenerator.GetCustomArguments(buildPartition.RepresentativeBenchmark, buildPartition.Resolver);
 
-            var publishNoDependencies = Build(generateResult, buildPartition, logger, $"--no-dependencies {extraArguments}");
+            var publishNoDependencies = CheckResult(generateResult, Build(generateResult, buildPartition, logger, $"--no-dependencies {extraArguments}"));
 
             // at first we try to build the project without it's dependencies to save a LOT of time
             // in 99% of the cases it will work (the host process is running so something can be compiled!)
             if (publishNoDependencies.IsBuildSuccess)
                 return publishNoDependencies;
 
-            return Build(generateResult, buildPartition, logger, extraArguments);
+            return CheckResult(generateResult, Build(generateResult, buildPartition, logger, extraArguments));
         }
 
-        private BuildResult Build(GenerateResult generateResult, BuildPartition buildPartition, ILogger logger, string extraArguments)
+        private DotNetCliCommandExecutor.CommandResult Build(GenerateResult generateResult, BuildPartition buildPartition, ILogger logger, string extraArguments)
         {
             bool needsIsolatedFolderForRestore = !string.IsNullOrEmpty(generateResult.ArtifactsPaths.PackagesDirectoryName);
 
-            var publishResult = needsIsolatedFolderForRestore
-                ? PublishUsingIsolatedRestoreFolder(generateResult, buildPartition, extraArguments, logger)
-                : Publish(generateResult, buildPartition, extraArguments, logger);
-
-            return CheckResult(generateResult, publishResult);
-        }
-
-        private DotNetCliCommandExecutor.CommandResult PublishUsingIsolatedRestoreFolder(GenerateResult generateResult, BuildPartition buildPartition, string extraArguments, ILogger logger)
-        {
             // restore --packages restores all packages to a dedicated folder, our Generator always creates a new folder for this in temp (see Generator.GetPackagesDirectoryPath())
             // it's mandatory for us for two reasons:
             // 1. dotnet restore installs given package with given version number only once (every next restore reuses that package)
@@ -59,9 +45,12 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
             // it's a sign for the tool that everything needs to be rebuild. Including the project that is currently executing!!
             // So by using this switch we use existing dlls and just build the auto-generated project
             // without this we would be trying to rebuild project which is currently in use and we would be getting file in use exceptions..
+
             var restoreResult = DotNetCliCommandExecutor.ExecuteCommand(
                 CustomDotNetCliPath,
-                $"restore --packages {generateResult.ArtifactsPaths.PackagesDirectoryName} {extraArguments}",
+                needsIsolatedFolderForRestore 
+                    ? $"restore --packages {generateResult.ArtifactsPaths.PackagesDirectoryName} {extraArguments}"
+                    : $"restore {extraArguments}",
                 generateResult.ArtifactsPaths.BuildArtifactsDirectoryPath,
                 logger);
 
@@ -83,13 +72,6 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
                 generateResult.ArtifactsPaths.BuildArtifactsDirectoryPath,
                 logger);
         }
-
-        private DotNetCliCommandExecutor.CommandResult Publish(GenerateResult generateResult, BuildPartition buildPartition, string extraArguments, ILogger logger) 
-            => DotNetCliCommandExecutor.ExecuteCommand(
-                CustomDotNetCliPath,
-                $"publish -c {buildPartition.BuildConfiguration} {extraArguments}",
-                generateResult.ArtifactsPaths.BuildArtifactsDirectoryPath,
-                logger);
 
         private static BuildResult CheckResult(GenerateResult generateResult, DotNetCliCommandExecutor.CommandResult commandResult) 
             => commandResult.IsSuccess || File.Exists(generateResult.ArtifactsPaths.ExecutablePath) // dotnet cli could have succesfully builded the program, but returned 1 as exit code because it had some warnings
