@@ -26,6 +26,10 @@ Setup(_ =>
         Information("Build will use FrameworkPathOverride={0} since not building on Windows.", frameworkPathOverride);
         msBuildSettings.WithProperty("FrameworkPathOverride", frameworkPathOverride);
     }
+    else
+    {
+        msBuildSettings.WithProperty("UseSharedCompilation", "false");
+    }
 });
 
 Task("Clean")
@@ -111,8 +115,8 @@ Task("Default")
     .IsDependentOn("Restore")
     .IsDependentOn("Build")
     .IsDependentOn("FastTests")
-    .IsDependentOn("SlowTestsNet46")
     .IsDependentOn("SlowTestsNetCore2")
+    .IsDependentOn("SlowTestsNet46")
     .IsDependentOn("Pack");
 
 RunTarget(target);

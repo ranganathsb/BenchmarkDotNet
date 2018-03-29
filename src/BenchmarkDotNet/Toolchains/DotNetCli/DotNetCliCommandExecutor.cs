@@ -44,8 +44,10 @@ namespace BenchmarkDotNet.Toolchains.DotNetCli
         }
 
         internal static CommandResult ExecuteCommand(
-            string customDotNetCliPath, string commandWithArguments, string workingDirectory, ILogger logger)
+            string customDotNetCliPath, string commandWithArguments, string workingDirectory, ILogger logger, bool useSharedCompilation = false)
         {
+            commandWithArguments = $"{commandWithArguments} /p:UseSharedCompilation={useSharedCompilation.ToString().ToLowerInvariant()}";
+
             using (var process = new Process { StartInfo = BuildStartInfo(customDotNetCliPath, workingDirectory, commandWithArguments) })
             {
                 var stopwatch = Stopwatch.StartNew();
