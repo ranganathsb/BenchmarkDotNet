@@ -1,5 +1,4 @@
-﻿#if NETCOREAPP2_1
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -39,4 +38,3 @@ namespace BenchmarkDotNet.IntegrationTests
         }
     }
 }
-#endif
