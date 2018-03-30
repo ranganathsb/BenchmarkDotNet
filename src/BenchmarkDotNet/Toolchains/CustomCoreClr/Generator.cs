@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BenchmarkDotNet.Extensions;
+using BenchmarkDotNet.Portability;
 
 namespace BenchmarkDotNet.Toolchains.CustomCoreClr
 {
@@ -46,14 +47,16 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
 
         private bool IsLocalCoreClr => feeds.ContainsKey(LocalCoreClrPackagesBin);
         private bool IsLocalCoreFx => feeds.ContainsKey(LocalCoreFxPacakgesBin);
-         
+
+        protected override string GetExecutableExtension() => RuntimeInformation.ExecutableExtension;
+
         protected override string GetBuildArtifactsDirectoryPath(BuildPartition buildPartition, string programName)
             => useTempFolderForRestore
                 ? Path.Combine(Path.GetTempPath(), programName) // store everything in temp to avoid collisions with IDE
                 : base.GetBuildArtifactsDirectoryPath(buildPartition, programName);
 
         protected override string GetBinariesDirectoryPath(string buildArtifactsDirectoryPath, string configuration)
-            => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, runtimeIdentifier, "publish");
+            => Path.Combine(buildArtifactsDirectoryPath, "bin", configuration, TargetFrameworkMoniker, runtimeIdentifier);
 
         protected override void GenerateBuildScript(BuildPartition buildPartition, ArtifactsPaths artifactsPaths)
         {

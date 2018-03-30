@@ -15,7 +15,7 @@ namespace BenchmarkDotNet.Toolchains.CustomCoreClr
             : base(displayName,
                 new Generator(coreClrVersion, coreFxVersion, targetFrameworkMoniker, runtimeIdentifier, feeds, useNuGetClearTag, useTempFolderForRestore),
                 new Publisher(customDotNetCliPath),
-                new DotNetCliExecutor(customDotNetCliPath))
+                new Executor())
         {
         }
 
