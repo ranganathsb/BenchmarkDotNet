@@ -124,7 +124,7 @@ RunTarget(target);
 // HELPERS
 private string GetTestSettingsParameters(string tfm)
 {
-    var settings = $"-configuration {configuration} -stoponfail -maxthreads unlimited -nobuild  -framework {tfm}";
+    var settings = $"-configuration {configuration} -parallel none -nobuild  -framework {tfm}";
     if(string.Equals("netcoreapp2.1", tfm, StringComparison.OrdinalIgnoreCase))
     {
         settings += " --fx-version 2.1.0-preview1-26216-03";

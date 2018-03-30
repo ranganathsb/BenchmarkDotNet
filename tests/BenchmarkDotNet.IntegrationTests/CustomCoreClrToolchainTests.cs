@@ -36,6 +36,8 @@ namespace BenchmarkDotNet.IntegrationTests
             {
                 var coreFxAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
 
+                Console.WriteLine($"// CoreFx version: {coreFxAssemblyInfo.FileVersion}");
+
                 if (coreFxAssemblyInfo.FileVersion != "4.6.26328.01")
                     throw new InvalidOperationException($"Wrong CoreFx version: was {coreFxAssemblyInfo.FileVersion}, should be 4.6.26328.01");
             }
@@ -61,6 +63,8 @@ namespace BenchmarkDotNet.IntegrationTests
             {
                 var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
 
+                Console.WriteLine($"// CoreClr version: {coreClrAssemblyInfo.FileVersion}");
+
                 if (coreClrAssemblyInfo.FileVersion != "4.6.26329.08")
                     throw new InvalidOperationException($"Wrong CoreClr version: was {coreClrAssemblyInfo.FileVersion}, should be 4.6.26329.08");
             }
@@ -85,11 +89,12 @@ namespace BenchmarkDotNet.IntegrationTests
             public void Check()
             {
                 var coreFxAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
+                var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
+
+                Console.WriteLine($"// CoreFx version: {coreFxAssemblyInfo.FileVersion}, CoreClr {coreClrAssemblyInfo.FileVersion}");
 
                 if (coreFxAssemblyInfo.FileVersion != "4.6.26328.01")
                     throw new InvalidOperationException($"Wrong CoreFx version: was {coreFxAssemblyInfo.FileVersion}, should be 4.6.26328.01");
-
-                var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
 
                 if (coreClrAssemblyInfo.FileVersion != "4.6.26329.08")
                     throw new InvalidOperationException($"Wrong CoreFx version: was {coreClrAssemblyInfo.FileVersion}, should be 4.6.26329.08");
@@ -116,11 +121,12 @@ namespace BenchmarkDotNet.IntegrationTests
             public void Check()
             {
                 var coreFxAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(Regex).GetTypeInfo().Assembly.Location);
+                var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
+
+                Console.WriteLine($"// CoreFx version: {coreFxAssemblyInfo.FileVersion}, CoreClr {coreClrAssemblyInfo.FileVersion}");
 
                 if (coreFxAssemblyInfo.FileVersion != "4.6.26427.0")
                     throw new InvalidOperationException($"Wrong CoreFx version: was {coreFxAssemblyInfo.FileVersion}, should be 4.6.26427.0");
-
-                var coreClrAssemblyInfo = FileVersionInfo.GetVersionInfo(typeof(object).GetTypeInfo().Assembly.Location);
 
                 if (coreClrAssemblyInfo.FileVersion != "4.6.26420.0")
                     throw new InvalidOperationException($"Wrong CoreFx version: was {coreClrAssemblyInfo.FileVersion}, should be 4.6.26420.0");
